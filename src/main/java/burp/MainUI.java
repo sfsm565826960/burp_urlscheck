@@ -1,12 +1,11 @@
 package burp;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import java.awt.*;
@@ -19,11 +18,12 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Vector;
 
 /*
  * @author LinChen
@@ -54,6 +54,16 @@ public class MainUI extends JPanel {
             return false;
         }
     };
+
+    public void updateModel(Object[][] data) {
+        model.setDataVector(data, TABLE_FILED);
+        table.setRowHeight(30);
+        table.getColumnModel().getColumn(0).setMaxWidth(80);
+        table.getColumnModel().getColumn(1).setMaxWidth(80);
+        table.getColumnModel().getColumn(2).setMaxWidth(80);
+        table.getColumnModel().getColumn(3).setPreferredWidth(50);
+    }
+
 
     public MainUI(Targets targets) {
         initComponents(targets);
@@ -221,7 +231,7 @@ public class MainUI extends JPanel {
         model.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
-                model.getDataVector();
+                targets.update(model);
                 model = (DefaultTableModel) table.getModel();
             }
         });

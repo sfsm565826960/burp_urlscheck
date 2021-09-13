@@ -14,6 +14,7 @@ public class BurpExtender implements IBurpExtender, IHttpListener, ITab
     private static IExtensionHelpers helpers;
     private static PrintWriter stdout;
     private Targets targets;
+    public MainUI mainUI;
 
     
     @Override
@@ -33,7 +34,8 @@ public class BurpExtender implements IBurpExtender, IHttpListener, ITab
             @Override
             public void run() {
                 // customize our UI components
-                callbacks.customizeUiComponent(new MainUI(targets));
+                mainUI = new MainUI(targets);
+                callbacks.customizeUiComponent(mainUI);
                 callbacks.addSuiteTab(BurpExtender.this);
             }
         });
@@ -50,6 +52,7 @@ public class BurpExtender implements IBurpExtender, IHttpListener, ITab
             if (!targets.isExcludeSuffix(url)) {
                 // 筛选目标
                 if (targets.contains(url)) {
+                    mainUI.updateModel(targets.getArray());
                     messageInfo.setHighlight("blue");
                 }
             }
@@ -63,7 +66,7 @@ public class BurpExtender implements IBurpExtender, IHttpListener, ITab
 
     @Override
     public Component getUiComponent() {
-        return new MainUI(targets);
+        return mainUI;
     }
 
     public static void main(String[] args) {

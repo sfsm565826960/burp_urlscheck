@@ -1,7 +1,10 @@
 package burp;
 
 import java.util.ArrayList;
+import java.util.Vector;
 import java.util.regex.*;
+
+import javax.swing.table.DefaultTableModel;
 
 public class Targets {
     public ArrayList<Object[]> targets;
@@ -85,13 +88,22 @@ public class Targets {
     public boolean contains(String text) {
         for (int i = 0; i < targets.size(); i++) {
             String targetText = (String) targets.get(i)[3];
-            if (text.contains(targetText))
+            if (text.contains(targetText)) {
+                targets.get(i)[1] = true;
                 return true;
+            }
         }
         return false;
     }
 
     public Object[][] getArray() {
         return targets.toArray(new Object[targets.size()][]);
+    }
+
+    public void update(DefaultTableModel model) {
+        targets.clear();
+        for(Vector<?> v:model.getDataVector()) {
+            targets.add(v.toArray(new Object[v.size()]));
+        }
     }
 }
