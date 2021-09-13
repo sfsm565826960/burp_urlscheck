@@ -31,7 +31,8 @@ public class Targets {
     }
 
     public Object[] add(Object[] data) {
-        if (data.length != 4) return null;
+        if (data.length != 4)
+            return null;
         data[0] = targets.size();
         targets.add(data);
         return data;
@@ -51,6 +52,19 @@ public class Targets {
 
     public void remove(int index) {
         targets.remove(index);
+        for (int i = index; i < targets.size(); i++) {
+            targets.get(i)[0] = i;
+        }
+    }
+
+    public void remove(int[] indexs) {
+        int pos = 0;
+        for (int index : indexs) {
+            targets.remove(index - pos++);
+        }
+        for (int i = indexs[0]; i < targets.size(); i++) {
+            targets.get(i)[0] = i;
+        }
     }
 
     public void edit(int index, Target target) {
@@ -58,7 +72,8 @@ public class Targets {
     }
 
     public void edit(int index, Object[] data) {
-        if (data.length != 4 || index < 0 || index >= targets.size()) return;
+        if (data.length != 4 || index < 0 || index >= targets.size())
+            return;
         data[0] = index;
         targets.set(index, data);
     }
@@ -68,14 +83,15 @@ public class Targets {
     }
 
     public boolean contains(String text) {
-        for (int i = 0; i < targets.size(); i++ ) {
+        for (int i = 0; i < targets.size(); i++) {
             String targetText = (String) targets.get(i)[3];
-            if (targetText.contains(text)) return true;
+            if (text.contains(targetText))
+                return true;
         }
         return false;
     }
 
-    public Object[][] getArray(){
+    public Object[][] getArray() {
         return targets.toArray(new Object[targets.size()][]);
     }
 }

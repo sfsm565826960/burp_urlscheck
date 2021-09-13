@@ -14,14 +14,21 @@ public class Target {
     }
 
     public Target(Object[] data) {
-        if (data.length == 4) {
-            this.isChecked = (boolean) data[1];
-            this.isVul = (boolean) data[2];
-            this.text = (String) data[3];
-        } else {
-            this.isChecked = false;
-            this.isVul = false;
-            this.text = "";
+        switch(data.length) {
+            case 4:
+                this.isChecked = (boolean) data[1];
+                this.isVul = (boolean) data[2];
+                this.text = (String) data[3];
+                break;
+            case 3:
+                this.isChecked = (boolean) data[0];
+                this.isVul = (boolean) data[1];
+                this.text = (String) data[2];
+                break;
+            default:
+                this.isChecked = false;
+                this.isVul = false;
+                this.text = "";
         }
     }
 

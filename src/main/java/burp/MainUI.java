@@ -17,10 +17,13 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /*
  * @author LinChen
@@ -29,6 +32,7 @@ import java.io.IOException;
 public class MainUI extends JPanel {
 
     private JTable table;
+    private String[] TABLE_FILED = new String[] { "#", "检测", "漏洞", "目标" };
 
     private DefaultTableModel model = new DefaultTableModel() {
         public Class<?> getColumnClass(int column) {
@@ -106,7 +110,7 @@ public class MainUI extends JPanel {
                 }
             }
         });
-        add(TargetAdd, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        add(TargetAdd, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(15, 5, 3, 2), 0, 0));
 
         // ---- Remove ----
@@ -115,14 +119,12 @@ public class MainUI extends JPanel {
         TargetRemove.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int pos = 0;
-                for (int row : table.getSelectedRows()) {
-                    model.removeRow(table.convertRowIndexToModel(row - pos++));
-                }
+                targets.remove(table.getSelectedRows());
+                model.setDataVector(targets.getArray(), TABLE_FILED);
                 model = (DefaultTableModel) table.getModel();
             }
         });
-        add(TargetRemove, new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
+        add(TargetRemove, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 5, 3, 2), 0, 0));
 
         // ---- Load ----
@@ -133,16 +135,29 @@ public class MainUI extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 JFileChooser jFileChooser = new JFileChooser();
                 jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                jFileChooser.setFileFilter(new FileNameExtensionFilter("TXT（每行一条目标）", "txt"));
+                jFileChooser.setFileFilter(new FileNameExtensionFilter("TXT（每行一条目标）|CSV（导入工作表）", "txt", "csv"));
                 if (jFileChooser.showOpenDialog(new JLabel()) == JFileChooser.APPROVE_OPTION) {
                     File file = new File(jFileChooser.getSelectedFile().toString());
                     try {
                         BufferedReader reader = new BufferedReader(new FileReader(file));
                         String line = null;
-                        while ((line = reader.readLine()) != null) {
-                            model.addRow(targets.add(line));
+                        if (file.getName().endsWith(".txt")) {
+                            while ((line = reader.readLine()) != null) {
+                                model.addRow(targets.add(line));
+                            }
+                        } else if (file.getName().endsWith(".csv")) {
+                            String [] parts;
+                            Target target;
+                            while ((line = reader.readLine()) != null) {
+                                parts = line.split(",");
+                                target = new Target(parts[2]);
+                                target.isChecked = Boolean.valueOf(parts[0]);
+                                target.isVul = Boolean.valueOf(parts[1]);
+                                model.addRow(targets.add(target));
+                            }
                         }
                         reader.close();
+
                     } catch (IOException e1) {
                         // TODO Auto-generated catch block
                         e1.printStackTrace();
@@ -151,8 +166,40 @@ public class MainUI extends JPanel {
                 model = (DefaultTableModel) table.getModel();
             }
         });
-        add(TargetLoad, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(15, 5, 3, 2), 0, 0));
+        add(TargetLoad, new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(0, 5, 3, 2), 0, 0));
+
+        // ---- Save ----
+        JButton TargetSave = new JButton();
+        TargetSave.setText("Save");
+        TargetSave.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JFileChooser jFileChooser = new JFileChooser();
+                jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                jFileChooser.setFileFilter(new FileNameExtensionFilter("CSV（导出工作表）", "csv"));
+                if (jFileChooser.showSaveDialog(new JLabel()) == JFileChooser.APPROVE_OPTION) {
+                    String filename = jFileChooser.getSelectedFile().toString();
+                    if (!filename.endsWith(".csv")) filename = filename + ".csv";
+                    try {
+                        BufferedWriter writer = new BufferedWriter(new FileWriter(new File(filename)));
+                        for(Object[] data: targets.targets) {
+                            writer.write(String.valueOf(data[1]) + "," + String.valueOf(data[2]) + "," + String.valueOf(data[3]));
+                            writer.newLine();
+                        }
+                        writer.flush();
+                        writer.close();
+                        JOptionPane.showMessageDialog(null, "Save Success");
+                    } catch (IOException e1) {
+                        // TODO Auto-generated catch block
+                        JOptionPane.showMessageDialog(null, e1.getMessage());
+                    }
+                }
+                model = (DefaultTableModel) table.getModel();
+            }
+        });
+        add(TargetSave, new GridBagConstraints(0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(0, 5, 3, 2), 0, 0));
 
         // ---- table ----
         table = new JTable();
@@ -170,10 +217,11 @@ public class MainUI extends JPanel {
 
         // JFormDesigner - End of component initialization //GEN-END:initComponents
         table.setModel(model);
-        model.setDataVector(targets.getArray(), new String[] { "#", "检测", "漏洞", "目标" });
+        model.setDataVector(targets.getArray(), TABLE_FILED);
         model.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
+                model.getDataVector();
                 model = (DefaultTableModel) table.getModel();
             }
         });
