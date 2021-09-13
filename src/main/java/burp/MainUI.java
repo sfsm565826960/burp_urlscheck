@@ -153,7 +153,7 @@ public class MainUI extends JPanel {
                         String line = null;
                         if (file.getName().endsWith(".txt")) {
                             while ((line = reader.readLine()) != null) {
-                                model.addRow(targets.add(line));
+                                targets.add(line);
                             }
                         } else if (file.getName().endsWith(".csv")) {
                             String [] parts;
@@ -163,11 +163,11 @@ public class MainUI extends JPanel {
                                 target = new Target(parts[2]);
                                 target.isChecked = Boolean.valueOf(parts[0]);
                                 target.isVul = Boolean.valueOf(parts[1]);
-                                model.addRow(targets.add(target));
+                                targets.add(target);
                             }
                         }
                         reader.close();
-
+                        updateModel(targets.getArray());
                     } catch (IOException e1) {
                         // TODO Auto-generated catch block
                         e1.printStackTrace();
